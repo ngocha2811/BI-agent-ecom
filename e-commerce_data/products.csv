@@ -1,0 +1,31 @@
+product_code,product_name,category,price
+SMT-1001,iPhone 15 Pro 256GB Space Black,Tablets,3
+SMT-1002,Samsung Galaxy S24 Ultra 512GB,Tablets,3
+SMT-1003,iPad Air 11-inch M2 Wi-Fi 128GB,Tablets,3
+SMT-1004,Google Pixel 8 Pro 128GB,Tablets,3
+SMT-1005,Samsung Galaxy Tab S9 256GB,Tablets,3
+SMT-1006,OnePlus 12 256GB Silky Black,Tablets,3
+LPC-2001,MacBook Air 13-inch M3 8GB 256GB,Computers,3
+LPC-2002,Dell XPS 15 Core i7 16GB 512GB SSD,Computers,3
+LPC-2003,HP Spectre x360 14 Touch 16GB 1TB,Computers,3
+LPC-2004,Lenovo ThinkPad X1 Carbon Gen 12,Computers,3
+LPC-2005,ASUS ROG Zephyrus G14 RTX 4060,Computers,3
+LPC-2006,Microsoft Surface Pro 10 Intel Core Ultra,Computers,3
+AUD-3001,Sony WH-1000XM5 Wireless Headphones,Headphones,3
+AUD-3002,Apple AirPods Pro 2nd Gen USB-C,Headphones,3
+AUD-3003,Bose QuietComfort Ultra Earbuds,Headphones,3
+AUD-3004,Samsung Galaxy Buds3 Pro,Headphones,3
+AUD-3005,JBL Charge 5 Portable Bluetooth Speaker,Headphones,3
+AUD-3006,Sonos Era 100 Smart Speaker,Headphones,3
+CAM-4001,Sony Alpha A7 IV Full-Frame Mirrorless,Cameras,3
+CAM-4002,Canon EOS R8 24.2MP Mirrorless,Cameras,3
+CAM-4003,Fujifilm X100VI Compact Camera,Cameras,3
+CAM-4004,GoPro HERO12 Black Action Camera,Cameras,3
+CAM-4005,DJI Osmo Pocket 3 Creator Combo,Cameras,3
+CAM-4006,Nikon Z50 II APS-C Mirrorless Kit,Cameras,3
+SHW-5001,Apple Watch Series 10 45mm GPS,Smart Home,3
+SHW-5002,Samsung Galaxy Watch7 44mm,Smart Home,3
+SHW-5003,Garmin Forerunner 965 GPS Watch,Smart Home,3
+SHW-5004,Amazon Echo Show 10 Smart Display,Smart Home,3
+SHW-5005,Philips Hue Starter Kit E27 4-Pack,Smart Home,3
+SHW-5006,Nest Learning Thermostat 4th Gen,Smart Home,3
