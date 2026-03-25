@@ -13,7 +13,7 @@ TOOLS = [
         "function": {
             "name": "get_data_df",
             "description": (
-                "Execute a MySQL SELECT query against the e-commerce database and "
+                "Execute a PostgreSQL SELECT query against the e-commerce database and "
                 "return the results as a table. Use this for any question that requires "
                 "data — sales, revenue, products, ads, margins, etc."
             ),
@@ -22,7 +22,7 @@ TOOLS = [
                 "properties": {
                     "sql_query": {
                         "type": "string",
-                        "description": "A valid MySQL SELECT statement to run against the database.",
+                        "description": "A valid PostgreSQL SELECT statement to run against the database.",
                     }
                 },
                 "required": ["sql_query"],
@@ -34,7 +34,7 @@ TOOLS = [
         "function": {
             "name": "create_chart",
             "description": (
-                "Execute a MySQL SELECT query and render the results as an interactive chart. "
+                "Execute a PostgreSQL SELECT query and render the results as an interactive chart. "
                 "Use this when the user asks for a chart, graph, plot, or visual. "
                 "Supported chart types: bar, line, area, scatter, pie."
             ),
@@ -43,7 +43,7 @@ TOOLS = [
                 "properties": {
                     "sql_query": {
                         "type": "string",
-                        "description": "A valid MySQL SELECT statement. The first column becomes the x-axis / labels, subsequent numeric columns become the values.",
+                        "description": "A valid PostgreSQL SELECT statement. The first column becomes the x-axis / labels, subsequent numeric columns become the values.",
                     },
                     "chart_type": {
                         "type": "string",

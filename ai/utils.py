@@ -8,13 +8,11 @@ from sqlalchemy import create_engine
 load_dotenv()
 
 # Get the connection string from environment
-LOCAL_CONNECTION_STRING = os.getenv("LOCAL_CONNECTION_STRING")
+DATABASE_URL = os.getenv("DATABASE_URL")
 CLOUD_CONNECTION_STRING = os.getenv("CLOUD_CONNECTION_STRING")
 
 def connect_to_local_database():
-    # Create the engine
-    engine = create_engine(LOCAL_CONNECTION_STRING)
-
+    engine = create_engine(DATABASE_URL)
     return engine.connect()
 
 def connect_to_cloud_database():

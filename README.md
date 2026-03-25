@@ -1,23 +1,81 @@
 # E-Commerce BI Agent
+Python · SQL · LLM Integration · Streamlit
 
-An AI-powered Business Intelligence application for e-commerce analytics. It combines a live KPI dashboard with a conversational agent that answers natural language questions about sales, products, advertising, and margins — backed by a local MySQL database and powered by the Grok API.
+An AI-powered Business Intelligence application for e-commerce analytics. It combines a live KPI dashboard with a conversational agent that answers natural language questions about sales, ad performance, and product revenue — backed by a cloud PostgreSQL database (Neon) and powered by the Grok API.
 
-Created by 
-Ngoc Ha Nguyen
+A Telegram bot extension is also included, enabling scheduled reports and instant business Q&A directly from your phone.
+
+Created by Ngoc Ha Nguyen
 > 🔗 **[LinkedIn → Let's Connect](https://www.linkedin.com/in/hannah-ngocha-nguyen/)**
 
-## Features
+---
 
-- **Live KPI Dashboard** — Sales, margin, profit, ad spend, and returns at a glance with period filtering (last 30 / 60 / 90 days)
-- **Channel Breakdown** — Weekly stacked bar chart and revenue share donut across Amazon FBA, Amazon FMN, and Shopify
-- **Product Performance** — Top 10 products by profit (gross margin vs. profit after ads)
-- **Returns Analysis** — Return rate by channel and top returned SKUs
-- **Conversational BI Agent** — Ask any business question in natural language; the agent generates MySQL queries and returns both a data table and a written insight
-- **Interactive Charts** — Ask for bar, line, area, scatter, or pie charts from the agent
-- **Auto-Bootstrap** — On first run the app creates the MySQL schema and imports all 5 CSVs automatically
-- **Query Transparency** — Every agent response shows the SQL query in an expandable section
+## Architecture
+
+The project is built as three interconnected layers sharing the same data and AI core.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        DATA LAYER                           │
+│                                                             │
+│   amz_orders  │  shopify_orders  │  products               │
+│   amz_ads     │  meta_ads                                   │
+│                                                             │
+│           PostgreSQL — Neon (cloud, persistent)             │
+│         seeded once via: python db/loader.py                │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       AI CORE                               │
+│                                                             │
+│   ai/agent.py      Grok-3-mini via xAI API                  │
+│   ai/tools.py      get_data_df(sql) — SELECT only           │
+│   ai/prompts.py    schema + column rules injected           │
+│                                                             │
+│   User question → Grok writes SQL → Query executes          │
+│                → DataFrame returned → Grok interprets       │
+└──────────┬──────────────────────────┬───────────────────────┘
+           │                          │
+           ▼                          ▼
+┌──────────────────────┐   ┌─────────────────────────────────┐
+│   STREAMLIT APP      │   │        TELEGRAM BOT             │
+│                      │   │                                 │
+│   KPI Dashboard      │   │   /ask  → same AI core          │
+│   - Total revenue    │   │   /report → scheduled summary   │
+│   - ROAS by channel  │   │   /alert → KPI threshold alerts │
+│   - Top products     │   │                                 │
+│   - Ad spend         │   │   bot/bot.py                    │
+│                      │   │   bot/handlers.py               │
+│   Chat Agent         │   │   bot/prompts.py                │
+│   - Natural language │   │                                 │
+│   - Table + chart    │   │                                 │
+│   - Insight text     │   │                                 │
+└──────────────────────┘   └─────────────────────────────────┘
+```
+
+**Data flow for a question (Streamlit and Telegram):**
+1. User asks a question in plain English
+2. Grok-3-mini receives the question + full PostgreSQL schema in system prompt
+3. Grok decides: write SQL (data question) or answer directly (interpretive)
+4. If SQL: `tools.py` executes SELECT query against Neon, returns DataFrame
+5. Grok makes a second call to interpret the DataFrame — writes a 2–3 sentence business insight
+6. Response rendered as table + chart + insight (Streamlit) or formatted message (Telegram)
+
+**Tech stack:**
+| Layer | Technology |
+|---|---|
+| LLM | Grok-3-mini (xAI API) |
+| Database | PostgreSQL — Neon (cloud) |
+| ORM / data loading | SQLAlchemy + Pandas |
+| Streamlit UI | Streamlit + Plotly |
+| Telegram bot | python-telegram-bot |
+| Version control | Git + GitHub |
+
+---
 
 ## Data Sources
+
 *The dataset is synthetically generated based on simplified real business data.*
 
 | File | Description | Rows |
@@ -28,19 +86,25 @@ Ngoc Ha Nguyen
 | `amz_ads.csv` | Amazon Ads — spend, clicks, ROAS by SKU & country | 50 |
 | `meta_ads.csv` | Meta Ads (Facebook/Instagram) — spend, impressions, clicks by SKU | 30 |
 
+> Amazon and Shopify date ranges do not overlap — this is intentional. The business started selling on Shopify in September 2025. All time-series queries use `DATE_TRUNC` grouping, not hardcoded date ranges.
+
+---
+
 ## Prerequisites
 
 - Python 3.10+
-- MySQL running locally (any version 8+)
 - A Grok API key from [console.x.ai](https://console.x.ai)
+- A Neon account and project from [neon.tech](https://neon.tech) (free tier is sufficient)
+
+---
 
 ## Installation & Setup
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/BI-data-ai-agent.git
-cd BI-data-ai-agent
+git clone https://github.com/ngocha2811/BI-agent-ecom.git
+cd BI-agent-ecom
 ```
 
 ### 2. Install dependencies
@@ -49,15 +113,7 @@ cd BI-data-ai-agent
 pip install -r requirements.txt
 ```
 
-### 3. Create the MySQL database
-
-The app creates the tables and imports the data automatically, but the database itself must exist first:
-
-```sql
-CREATE DATABASE ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-### 4. Configure environment variables
+### 3. Configure environment variables
 
 Copy `.env.sample` to `.env` and fill in your values:
 
@@ -69,8 +125,29 @@ cp .env.sample .env
 # Grok API key — https://console.x.ai
 XAI_API_KEY=your_xai_api_key_here
 
-# MySQL connection string
-LOCAL_CONNECTION_STRING=mysql+pymysql://root:your_password@localhost:3306/ecommerce
+# Neon PostgreSQL connection string — https://neon.tech
+DATABASE_URL=postgresql+psycopg2://user:password@host/dbname
+
+# Telegram bot token — from @BotFather (optional)
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+```
+
+### 4. Seed the database (one time only)
+
+The Neon database is persistent — you only need to run this once to create the tables and import all 5 CSVs:
+
+```bash
+python db/loader.py
+```
+
+You should see:
+
+```
+✓ products: 30 rows loaded
+✓ amz_orders: 11,500 rows loaded
+✓ shopify_orders: 920 rows loaded
+✓ amz_ads: 50 rows loaded
+✓ meta_ads: 30 rows loaded
 ```
 
 ### 5. Run the app
@@ -79,20 +156,20 @@ LOCAL_CONNECTION_STRING=mysql+pymysql://root:your_password@localhost:3306/ecomme
 streamlit run app.py
 ```
 
-On the first launch, the app will print bootstrap logs as it creates all 5 tables and imports the CSVs, then open the dashboard.
+---
 
 ## Usage
 
 ### Dashboard
 
-The top section of the page is a static KPI dashboard loaded directly from the CSV files. Use the **Period** radio button (top right) to switch between last 30, 60, and 90 days.
+The top section of the page is a KPI dashboard loaded directly from the database. Use the **Period** radio button (top right) to switch between last 30, 60, and 90 days.
 
 ### BI Agent
 
-Scroll to the bottom of the page to reach the chat interface. The agent can:
+Scroll down to the chat interface. The agent can:
 
-- Run MySQL queries and display the results as a table
-- Render interactive charts (bar, line, area, scatter, pie)
+- Run SQL queries and display results as an interactive table
+- Render charts (bar, line, area, scatter, pie) based on the data
 - Follow up each result with a 2–3 sentence written business insight
 
 **Example questions:**
@@ -103,16 +180,33 @@ Show me monthly Amazon sales as a line chart
 Which SKUs have the highest ROAS on Amazon Ads?
 What is the gross margin per product on Shopify?
 Bar chart of ad spend by platform
-Which products were returned most often?
 Compare revenue between Amazon and Shopify
 What are the top 10 products by profit after ad spend?
 ```
 
+### Telegram Bot
+
+Start the bot:
+
+```bash
+python chat_bot.py
+```
+
+Available commands:
+
+| Command | Description |
+|---|---|
+| `/ask [question]` | Ask any business question — same AI core as the Streamlit agent |
+| `/report` | Get a summary report of key metrics |
+| `/alert` | Check if any KPIs have crossed alert thresholds |
+
+---
+
 ## Project Structure
 
 ```
-BI-data-ai-agent/
-├── e-commerce_data/               # Source CSV files (read-only)
+BI-agent-ecom/
+├── ecommerce_data/                # Source CSV files (read-only)
 │   ├── amz_orders.csv
 │   ├── shopify_orders.csv
 │   ├── products.csv
@@ -120,57 +214,42 @@ BI-data-ai-agent/
 │   └── meta_ads.csv
 ├── ai/
 │   ├── agent.py                   # Two-call Grok agent (query → insight)
-│   ├── tools.py                   # get_data_df and create_chart tools
-│   ├── prompts.py                 # System prompt with schema and MySQL rules
-│   ├── ecommerce_schema.py        # Full schema string injected into the prompt
+│   ├── tools.py                   # get_data_df and chart tools
+│   ├── prompts.py                 # System prompt with schema and business rules
+│   ├── ecommerce_schema.py        # Full DDL schema injected into the prompt
 │   └── utils.py                   # SQLAlchemy connection helpers
+├── bot/
+│   ├── bot.py                     # Telegram bot entry point
+│   ├── handlers.py                # /ask, /report, /alert command handlers
+│   └── prompts.py                 # Telegram-specific system prompt
 ├── db/
 │   ├── schema.py                  # CREATE TABLE DDL for all 5 tables
-│   └── loader.py                  # Bootstrap: check → create → import CSVs
+│   └── loader.py                  # One-time seed script: create tables + import CSVs
 ├── dashboard/
-│   └── dashboard.py               # Static KPI dashboard (Plotly + pandas)
+│   └── dashboard.py               # KPI dashboard (Plotly + pandas)
 ├── app.py                         # Streamlit entry point
+├── chat_bot.py                    # Telegram chat bot entry point
 ├── .env.sample                    # Environment variable template
 ├── requirements.txt               # Python dependencies
 └── README.md
 ```
 
-## Architecture
-
-```
-Browser
-  └── Streamlit (app.py)
-        ├── Dashboard (dashboard/dashboard.py)
-        │     └── reads CSVs directly via pandas
-        └── BI Agent (ai/agent.py)
-              ├── Call 1 → Grok-3-mini (tool calling)
-              │     └── tool: get_data_df  → MySQL → st.dataframe
-              │     └── tool: create_chart → MySQL → st.plotly_chart
-              └── Call 2 → Grok-3-mini (plain text)
-                    └── interprets query results → written insight
-```
-
-**Database layer** (`db/loader.py`) runs on every app start. It checks whether the `products` table has rows; if any table is empty it truncates and re-imports all CSVs from `e-commerce_data/`.
+---
 
 ## Key Technical Details
 
-- **Model**: `grok-3-mini` via the xAI API (OpenAI-compatible SDK)
-- **Database**: MySQL with PyMySQL + SQLAlchemy
+- **Model**: `grok-3-mini` via the xAI API (OpenAI-compatible client)
+- **Database**: PostgreSQL on Neon — cloud persistent, no local setup needed
 - **Insight generation**: After every query the agent makes a second Grok call (no tools, capped at 50 rows) to generate a 2–3 sentence business interpretation
-- **Date grouping**: The system prompt enforces MySQL `DATE_FORMAT(order_date, '%Y-%m')` — never PostgreSQL `DATE_TRUNC`
+- **Date grouping**: The system prompt enforces `DATE_TRUNC('month', order_date)` for all time-series queries
+- **Safety**: All queries are SELECT-only — enforced in both the system prompt and in `tools.py` before execution
 - **Business context baked into the prompt**: the agent knows Amazon orders are from 2024, Shopify from September 2025, and that product `price` is the unit cost in EUR (not the sale price)
 
-## Tech Stack
+---
 
-| Library | Purpose |
-|---|---|
-| `openai` | Grok API client (xAI, OpenAI-compatible) |
-| `streamlit` | Web UI and chat interface |
-| `plotly` | Interactive charts in dashboard and agent |
-| `pandas` | Data manipulation and CSV loading |
-| `sqlalchemy` + `pymysql` | MySQL connection and query execution |
-| `python-dotenv` | Environment variable management |
+## Author & License
 
-## License
+Ngoc Ha Nguyen
+> 🔗 **[LinkedIn → Let's Connect](https://www.linkedin.com/in/hannah-ngocha-nguyen/)**
 
 MIT License — see `LICENSE` for details.

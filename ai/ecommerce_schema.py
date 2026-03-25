@@ -114,7 +114,7 @@ BUSINESS CONTEXT
 
 1. Amazon orders date from 2024. Shopify was launched in September 2025.
    There is NO temporal overlap between channels — this is correct business history.
-   When analysing trends over time, use YEAR() or DATE_FORMAT() to separate periods.
+   When analysing trends over time, use EXTRACT(YEAR FROM ...) or TO_CHAR(..., 'YYYY-MM') to separate periods.
 
 2. Product prices in the products table are in EUR and are intentionally low (e.g. €3).
    These represent unit costs, not sale prices. Order revenue in the hundreds is normal

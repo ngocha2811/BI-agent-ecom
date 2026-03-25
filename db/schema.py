@@ -1,5 +1,5 @@
 """
-CREATE TABLE DDL for the e-commerce BI database.
+CREATE TABLE DDL for the e-commerce BI database (PostgreSQL / Neon).
 Tables must be created in this order to satisfy FK constraints:
   1. products  (referenced by all others)
   2. amz_orders
@@ -17,35 +17,38 @@ CREATE TABLE IF NOT EXISTS products (
     -- NOTE: price is intentionally low (e.g. €3). This is the unit cost in EUR,
     -- not the sale price. Do not treat as a data error.
     PRIMARY KEY (sku)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 """
 
 CREATE_AMZ_ORDERS = """
 CREATE TABLE IF NOT EXISTS amz_orders (
-    id             INT           NOT NULL AUTO_INCREMENT,
-    order_date     DATETIME      NOT NULL,
+    id             SERIAL        NOT NULL,
+    order_date     TIMESTAMP     NOT NULL,
     order_type     VARCHAR(50),
     order_id       VARCHAR(50),
     sku            VARCHAR(20),
     seller_type    VARCHAR(50),
     sale_price     DECIMAL(10,2),
     total_taxes    DECIMAL(10,2),
-    fee            DECIMAL(10,2),   -- negative value; represents Amazon's commission/fee
+    fee            DECIMAL(10,2),
     total_amount   DECIMAL(10,2),
     PRIMARY KEY (id),
-    INDEX idx_amz_order_date (order_date),
-    INDEX idx_amz_order_id   (order_id),
-    INDEX idx_amz_sku        (sku),
     CONSTRAINT fk_amz_orders_sku FOREIGN KEY (sku) REFERENCES products(sku)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
+"""
+
+CREATE_AMZ_ORDERS_INDEXES = """
+CREATE INDEX IF NOT EXISTS idx_amz_order_date ON amz_orders (order_date);
+CREATE INDEX IF NOT EXISTS idx_amz_order_id   ON amz_orders (order_id);
+CREATE INDEX IF NOT EXISTS idx_amz_sku        ON amz_orders (sku);
 """
 
 CREATE_SHOPIFY_ORDERS = """
 CREATE TABLE IF NOT EXISTS shopify_orders (
-    id           INT           NOT NULL AUTO_INCREMENT,
+    id           SERIAL        NOT NULL,
     order_id     VARCHAR(50),
     sku          VARCHAR(20),
-    order_date   DATETIME      NOT NULL,
+    order_date   TIMESTAMP     NOT NULL,
     order_type   VARCHAR(50),
     email        VARCHAR(255),
     total_amount DECIMAL(10,2),
@@ -53,16 +56,19 @@ CREATE TABLE IF NOT EXISTS shopify_orders (
     -- There is no temporal overlap between channels — this is correct business history.
     -- order_id is not unique: the same order_id can appear as both 'order' and 'return'.
     PRIMARY KEY (id),
-    INDEX idx_shopify_order_id   (order_id),
-    INDEX idx_shopify_order_date (order_date),
-    INDEX idx_shopify_sku        (sku),
     CONSTRAINT fk_shopify_orders_sku FOREIGN KEY (sku) REFERENCES products(sku)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
+"""
+
+CREATE_SHOPIFY_ORDERS_INDEXES = """
+CREATE INDEX IF NOT EXISTS idx_shopify_order_id   ON shopify_orders (order_id);
+CREATE INDEX IF NOT EXISTS idx_shopify_order_date ON shopify_orders (order_date);
+CREATE INDEX IF NOT EXISTS idx_shopify_sku        ON shopify_orders (sku);
 """
 
 CREATE_AMZ_ADS = """
 CREATE TABLE IF NOT EXISTS amz_ads (
-    id         INT           NOT NULL AUTO_INCREMENT,
+    id         SERIAL        NOT NULL,
     sku        VARCHAR(20),
     country    VARCHAR(100),
     clicks     INT,
@@ -74,10 +80,13 @@ CREATE TABLE IF NOT EXISTS amz_ads (
     roas       DECIMAL(12,6),
     -- NOTE: This is a SKU-level snapshot (no date column). Join on sku only.
     PRIMARY KEY (id),
-    INDEX idx_amz_ads_sku     (sku),
-    INDEX idx_amz_ads_country (country),
     CONSTRAINT fk_amz_ads_sku FOREIGN KEY (sku) REFERENCES products(sku)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
+"""
+
+CREATE_AMZ_ADS_INDEXES = """
+CREATE INDEX IF NOT EXISTS idx_amz_ads_sku     ON amz_ads (sku);
+CREATE INDEX IF NOT EXISTS idx_amz_ads_country ON amz_ads (country);
 """
 
 CREATE_META_ADS = """
@@ -90,14 +99,17 @@ CREATE TABLE IF NOT EXISTS meta_ads (
     -- Join on sku only.
     PRIMARY KEY (sku),
     CONSTRAINT fk_meta_ads_sku FOREIGN KEY (sku) REFERENCES products(sku)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 """
 
-# Ordered list used by the loader
+# Ordered list used by the loader — tables first, then indexes
 ALL_DDL = [
     CREATE_PRODUCTS,
     CREATE_AMZ_ORDERS,
+    CREATE_AMZ_ORDERS_INDEXES,
     CREATE_SHOPIFY_ORDERS,
+    CREATE_SHOPIFY_ORDERS_INDEXES,
     CREATE_AMZ_ADS,
+    CREATE_AMZ_ADS_INDEXES,
     CREATE_META_ADS,
 ]

@@ -1,5 +1,5 @@
 """
-Bootstrap the e-commerce MySQL database.
+Bootstrap the e-commerce PostgreSQL (Neon) database.
 
 On first run (or whenever the `products` table is missing), this module:
   1. Creates all 5 tables using the DDL in db/schema.py
@@ -23,11 +23,11 @@ DATA_DIR = Path(__file__).parent.parent / "e-commerce_data"
 
 
 def _get_engine():
-    conn_str = os.getenv("LOCAL_CONNECTION_STRING")
+    conn_str = os.getenv("DATABASE_URL")
     if not conn_str:
         raise ValueError(
-            "LOCAL_CONNECTION_STRING not set in .env — "
-            "expected format: mysql+pymysql://user:password@host:port/dbname"
+            "DATABASE_URL not set in .env — "
+            "expected format: postgresql://user:password@host/dbname?sslmode=require"
         )
     return create_engine(conn_str)
 
@@ -36,7 +36,10 @@ def _is_seeded(conn) -> bool:
     """Return True only if ALL 5 tables exist and each contains at least one row."""
     tables = ["products", "amz_orders", "shopify_orders", "amz_ads", "meta_ads"]
     for table in tables:
-        check = conn.execute(text(f"SHOW TABLES LIKE '{table}'"))
+        check = conn.execute(text(
+            "SELECT 1 FROM information_schema.tables "
+            "WHERE table_schema = 'public' AND table_name = :t"
+        ), {"t": table})
         if check.fetchone() is None:
             return False
         count = conn.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar()
@@ -54,10 +57,8 @@ def _create_tables(conn):
 
 def _truncate_all(conn):
     """Truncate all tables in reverse FK order before a clean re-import."""
-    conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
     for table in ["meta_ads", "amz_ads", "shopify_orders", "amz_orders", "products"]:
-        conn.execute(text(f"TRUNCATE TABLE {table}"))
-    conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
+        conn.execute(text(f"TRUNCATE TABLE {table} CASCADE"))
     conn.commit()
     print("[bootstrap] All tables truncated.")
 

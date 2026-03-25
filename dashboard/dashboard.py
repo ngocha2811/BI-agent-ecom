@@ -3,9 +3,10 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import timedelta
 import os
+from sqlalchemy import create_engine
+from dotenv import load_dotenv
 
-
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "e-commerce_data")
+load_dotenv()
 
 def show_dashboard():
     st.markdown("""
@@ -47,11 +48,13 @@ def show_dashboard():
     # ── Load ──────────────────────────────────────────────────────────────────────
     @st.cache_data
     def load_data():
-        amz      = pd.read_csv(os.path.join(DATA_DIR, "amz_orders.csv"))
-        shopify  = pd.read_csv(os.path.join(DATA_DIR, "shopify_orders.csv"))
-        products = pd.read_csv(os.path.join(DATA_DIR, "products.csv"))
-        amz_ads  = pd.read_csv(os.path.join(DATA_DIR, "amz_ads.csv"))
-        meta_ads = pd.read_csv(os.path.join(DATA_DIR, "meta_ads.csv"))
+        engine = create_engine(os.getenv("DATABASE_URL"))
+        with engine.connect() as conn:
+            amz      = pd.read_sql("SELECT * FROM amz_orders",    conn)
+            shopify  = pd.read_sql("SELECT * FROM shopify_orders", conn)
+            products = pd.read_sql("SELECT * FROM products",       conn)
+            amz_ads  = pd.read_sql("SELECT * FROM amz_ads",        conn)
+            meta_ads = pd.read_sql("SELECT * FROM meta_ads",       conn)
         return amz, shopify, products, amz_ads, meta_ads
 
     @st.cache_data
@@ -76,16 +79,16 @@ def show_dashboard():
         amz_returns["amount"] = amz_returns["amount"].abs()
 
         # ── Shopify orders ─────────────────────────────────────────────────────────
-        # Columns: order_id, sku, date, type, email, total_amount
+        # Columns (DB): order_id, sku, order_date, order_type, email, total_amount
         shopify = shopify_raw.copy()
-        shopify["date"]        = pd.to_datetime(shopify["date"], errors="coerce")
+        shopify["date"]        = pd.to_datetime(shopify["order_date"], errors="coerce")
         shopify["sku"]         = shopify["sku"].astype(str).str.strip()
         shopify["amount"]      = pd.to_numeric(shopify["total_amount"], errors="coerce").fillna(0)
         shopify["channel"]     = "Shopify"
         shopify["sub_channel"] = "Shopify"
 
-        shop_orders  = shopify[shopify["type"].str.strip().str.lower() == "order"].copy()
-        shop_returns = shopify[shopify["type"].str.strip().str.lower() == "return"].copy()
+        shop_orders  = shopify[shopify["order_type"].str.strip().str.lower() == "order"].copy()
+        shop_returns = shopify[shopify["order_type"].str.strip().str.lower() == "return"].copy()
         shop_returns["amount"] = shop_returns["amount"].abs()
 
         # ── Unified orders & returns ───────────────────────────────────────────────
@@ -94,9 +97,9 @@ def show_dashboard():
         returns = pd.concat([amz_returns[keep], shop_returns[keep]], ignore_index=True)
 
         # ── Products ───────────────────────────────────────────────────────────────
-        # Columns: product_code, product_name, category, price
+        # Columns (DB): sku, product_name, category, price
         products = products_raw.copy()
-        products = products.rename(columns={"product_code": "sku", "price": "cost_price"})
+        products = products.rename(columns={"price": "cost_price"})
         products["sku"]        = products["sku"].astype(str).str.strip()
         products["cost_price"] = pd.to_numeric(products["cost_price"], errors="coerce").fillna(0)
 
@@ -173,8 +176,8 @@ def show_dashboard():
 
     if not data_ok:
         st.error(
-            f"Could not load data from `{DATA_DIR}`.\n\n"
-            f"Make sure all 5 CSV files are inside the `e-commerce_data` folder.\n\n"
+            f"Could not load data from the database.\n\n"
+            f"Check that DATABASE_URL is set correctly in .env and the database is seeded.\n\n"
             f"Error: {err_msg}"
         )
         st.stop()
@@ -379,17 +382,17 @@ def show_dashboard():
     with ret3:
         st.markdown("**Data sources**")
         sources = {
-            "amz_orders.csv":     f"{len(amz_raw):,} rows",
-            "shopify_orders.csv": f"{len(shopify_raw):,} rows",
-            "products.csv":       f"{len(products_raw):,} SKUs",
-            "amz_ads.csv":        f"{len(amz_ads_raw):,} rows",
-            "meta_ads.csv":       f"{len(meta_ads_raw):,} rows",
+            "amz_orders":     f"{len(amz_raw):,} rows",
+            "shopify_orders": f"{len(shopify_raw):,} rows",
+            "products":       f"{len(products_raw):,} SKUs",
+            "amz_ads":        f"{len(amz_ads_raw):,} rows",
+            "meta_ads":       f"{len(meta_ads_raw):,} rows",
         }
-        for fname, info in sources.items():
+        for tname, info in sources.items():
             st.markdown(f"""
             <div style="display:flex; justify-content:space-between; padding:6px 0;
                 border-bottom:0.5px solid #f0eeea; font-size:13px;">
                 <span style="color:#555; font-family:'DM Mono',monospace;
-                    font-size:12px;">{fname}</span>
+                    font-size:12px;">{tname}</span>
                 <span style="color:#aaa; font-size:12px;">{info}</span>
             </div>""", unsafe_allow_html=True)
