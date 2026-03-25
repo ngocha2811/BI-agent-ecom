@@ -1,8 +1,5 @@
 # E-Commerce BI Agent
-<img src="https://img.shields.io/badge/Python-3.10+-blue" alt="Python">
-<img src="https://img.shields.io/badge/PostgreSQL-Neon-green" alt="PostgreSQL">
-<img src="https://img.shields.io/badge/Streamlit-live-red" alt="Streamlit">
-<img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
+Python | SQL | LLM Integration | Streamlit | Telegram Chat Bot
 
 ---
 
