@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from dotenv import load_dotenv
-from .utils import connect_to_local_database, connect_to_cloud_database
+from .utils import connect_to_local_database
 from sqlalchemy import text
 
 load_dotenv()
@@ -141,32 +141,4 @@ def create_chart_local(sql_query: str, chart_type: str, x_column: str, y_column:
         return None, f"Chart failed: {e}"
 
 
-def get_data_df_cloud(sql_query: str) -> str:
-    conn = connect_to_cloud_database()
-    if conn is None:
-        st.error("Failed to connect to the database.")
-        return "Failed to connect to the database."
-
-    try:
-        with conn.cursor() as cur:
-            cur.execute(sql_query)
-            results = cur.fetchall()
-            columns = [desc[0] for desc in cur.description]
-
-        if not results:
-            st.info("The query returned no results.")
-            return "The query returned no rows."
-
-        df = pd.DataFrame(results, columns=columns)
-        with st.expander("SQL Query", expanded=False):
-            st.code(sql_query, language="sql")
-        st.dataframe(df, width="stretch")
-        return f"Query returned {len(df)} row(s)."
-
-    except Exception as e:
-        st.error(f"Database error: {e}")
-        return f"Query failed: {e}"
-
-    finally:
-        conn.close()
 
