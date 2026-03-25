@@ -1,16 +1,22 @@
 # E-Commerce BI Agent
-![Python](https://img.shields.io/badge/Python-3.10+-blue)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-green)
-![Streamlit](https://img.shields.io/badge/Streamlit-live-red)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
+<img src="https://img.shields.io/badge/Python-3.10+-blue" alt="Python">
+<img src="https://img.shields.io/badge/PostgreSQL-Neon-green" alt="PostgreSQL">
+<img src="https://img.shields.io/badge/Streamlit-live-red" alt="Streamlit">
+<img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License">
+
+---
 
 🚀 **[Live Demo → insight-ai-ecom.streamlit.app](https://insight-ai-ecom.streamlit.app/)**
 ![Streamlit App](/visuals/streamlit_app.gif)
 
+---
+
 **An AI-powered Business Intelligence** application for e-commerce analytics. It combines a live KPI dashboard with a conversational agent that answers natural language questions about sales, ad performance, and product revenue — backed by a cloud PostgreSQL database (Neon) and powered by the Grok API.
 
-Created by Ngoc Ha Nguyen
-> 🔗 **[LinkedIn → Let's Connect](https://www.linkedin.com/in/hannah-ngocha-nguyen/)**
+---
+
+Author: 
+Ngoc Ha Nguyen 🔗 **[LinkedIn → Let's Connect](https://www.linkedin.com/in/hannah-ngocha-nguyen/)**
 
 ---
 
