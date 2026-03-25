@@ -1,12 +1,35 @@
 # E-Commerce BI Agent
-Python · SQL · LLM Integration · Streamlit
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-green)
+![Streamlit](https://img.shields.io/badge/Streamlit-live-red)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-An AI-powered Business Intelligence application for e-commerce analytics. It combines a live KPI dashboard with a conversational agent that answers natural language questions about sales, ad performance, and product revenue — backed by a cloud PostgreSQL database (Neon) and powered by the Grok API.
+🚀 **[Live Demo → insight-ai-ecom.streamlit.app](https://insight-ai-ecom.streamlit.app/)**
+![Streamlit App](/visuals/streamlit_app.gif)
 
-A Telegram bot extension is also included, enabling scheduled reports and instant business Q&A directly from your phone.
+**An AI-powered Business Intelligence** application for e-commerce analytics. It combines a live KPI dashboard with a conversational agent that answers natural language questions about sales, ad performance, and product revenue — backed by a cloud PostgreSQL database (Neon) and powered by the Grok API.
 
 Created by Ngoc Ha Nguyen
 > 🔗 **[LinkedIn → Let's Connect](https://www.linkedin.com/in/hannah-ngocha-nguyen/)**
+
+---
+
+## Why This Project
+
+Most BI tools require SQL knowledge or dashboard access. 
+This agent lets any stakeholder — technical or not — ask 
+questions in plain English and get back data, a chart, 
+and a written interpretation in one response.
+
+Key engineering decisions:
+- **Two-call LLM pattern**: first call generates SQL, 
+  second call interprets the result — separating data 
+  retrieval from insight generation
+- **Cloud-first**: PostgreSQL on Neon means zero local 
+  setup for anyone who clones the repo
+- **Same AI core, two interfaces**: Streamlit for desktop 
+  analysis, Telegram for on-the-go alerts — both share 
+  identical agent and database logic
 
 ---
 
@@ -178,7 +201,6 @@ Scroll down to the chat interface. The agent can:
 What is the total revenue by product category?
 Show me monthly Amazon sales as a line chart
 Which SKUs have the highest ROAS on Amazon Ads?
-What is the gross margin per product on Shopify?
 Bar chart of ad spend by platform
 Compare revenue between Amazon and Shopify
 What are the top 10 products by profit after ad spend?
@@ -191,14 +213,36 @@ Start the bot:
 ```bash
 python chat_bot.py
 ```
+Find the bot here: [InsightAI on Telegram](https://t.me/my_bi_assistant_bot)
 
-Available commands:
+
+<table>
+<tr>
+<td valign="top" width="60%">
+
+**Example conversation:**
+
+The bot accepts plain English questions and returns formatted answers directly in Telegram — no dashboard access needed.
+
+Useful for checking KPIs on the go or sharing quick data points with non-technical stakeholders.
+
+**Available commands:**
 
 | Command | Description |
 |---|---|
-| `/ask [question]` | Ask any business question — same AI core as the Streamlit agent |
-| `/report` | Get a summary report of key metrics |
-| `/alert` | Check if any KPIs have crossed alert thresholds |
+| `/ask [question]` | Ask any business question: sales, ad performance, and product revenue |
+| `/alert` | Check if any KPIs have crossed defined alert thresholds |
+| `/search` | Search web for general insights or information. For example: "search when is the next public holiday in Germany?" |
+
+
+</td>
+<td valign="top" width="40%">
+
+![Telegram bot](visuals/telegram_bot.jpeg)
+
+</td>
+</tr>
+</table>
 
 ---
 
