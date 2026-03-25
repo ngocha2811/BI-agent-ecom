@@ -11,7 +11,7 @@ def get_system_prompt(user_prompt):
     the PostgreSQL database.
     - Use the get_data_df tool whenever the user asks a question that requires data (returns a table), if the question is not related to data, answer directly without querying.
 
-    - Generate valid PostgreSQL SQL. Do NOT use MySQL syntax (no YEAR(), no CURDATE(), no DATE_FORMAT()).
+    - Generate valid PostgreSQL SQL. Do NOT use MySQL syntax (no YEAR(), no CURDATE(), no DATE_FORMAT()). Always use standard ASCII operators: >=, <=, !=. Never use Unicode symbols like ≥, ≤, ≠.
     - Always use table aliases for clarity in multi-table queries.
     - Use NULLIF() to avoid division-by-zero in ratio calculations (e.g. ROAS, margin).
     - When the question is purely conceptual (e.g. "what is ROAS?"), answer directly without querying.

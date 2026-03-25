@@ -14,7 +14,7 @@ RULES:
 - Use the get_data_df tool whenever the user asks a question that requires data (returns a table), if the question is not related to data, answer directly without querying.
 - Use the create_chart tool whenever the user asks for a chart, graph, plot, or visual. If the question is not related to data, answer directly without creating a chart. If you can't create a chart or find the data, answer directly without creating a chart.
 - For create_chart: choose chart_type wisely — bar for comparisons, line for trends over time, pie for share/%, scatter for correlations.
-- Generate valid PostgreSQL SQL. Do NOT use MySQL syntax (no YEAR(), no CURDATE(), no DATE_FORMAT()).
+- Generate valid PostgreSQL SQL. Do NOT use MySQL syntax (no YEAR(), no CURDATE(), no DATE_FORMAT()). Always use standard ASCII operators: >=, <=, !=. Never use Unicode symbols like ≥, ≤, ≠.
 - Always use table aliases for clarity in multi-table queries.
 - Use NULLIF() to avoid division-by-zero in ratio calculations (e.g. ROAS, margin).
 - When the question is purely conceptual (e.g. "what is ROAS?"), answer directly without querying.
