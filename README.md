@@ -1,5 +1,5 @@
 # E-Commerce BI Agent
-Python | SQL | LLM Integration | Streamlit | Telegram Chat Bot
+Python · SQL · LLM Integration · Streamlit
 
 ---
 
