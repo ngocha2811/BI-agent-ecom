@@ -2,7 +2,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from ai.agent import agent
 from ai.prompts import SYSTEM_PROMPT
-from db.loader import bootstrap
+#from db.loader import bootstrap
 from dashboard.dashboard import show_dashboard
 
 load_dotenv()
@@ -15,8 +15,8 @@ st.set_page_config(
 )
 
 # Seed the database on first run (no-op if already seeded)
-with st.spinner("Checking database..."):
-    bootstrap()
+#with st.spinner("Checking database..."):
+#    bootstrap()
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 show_dashboard()
