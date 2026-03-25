@@ -44,7 +44,7 @@ The project is built as three interconnected layers sharing the same data and AI
 ┌─────────────────────────────────────────────────────────────┐
 │                        DATA LAYER                           │
 │                                                             │
-│   amz_orders  │  shopify_orders  │  products               │
+│   amz_orders  │  shopify_orders  │  products                │
 │   amz_ads     │  meta_ads                                   │
 │                                                             │
 │           PostgreSQL — Neon (cloud, persistent)             │
