@@ -165,6 +165,37 @@ def get_data_df_local(sql_query: str) -> str:
     return f"```\n{preview}\n```{suffix}"
 
 
+ADS_ALERT_THRESHOLD = 3000
+
+def check_ads_alert() -> str | None:
+    """
+    Query total ads spend across Amazon Ads and Meta Ads.
+    Returns an alert message string if total exceeds ADS_ALERT_THRESHOLD, else None.
+    """
+    sql = """
+        SELECT
+            COALESCE((SELECT SUM(total_cost) FROM amz_ads), 0) +
+            COALESCE((SELECT SUM(spend)      FROM meta_ads), 0) AS total_spend
+    """
+    try:
+        conn = connect_to_local_database()
+        row = conn.execute(text(sql)).fetchone()
+        conn.close()
+        total_spend = float(row[0]) if row and row[0] is not None else 0.0
+    except Exception as e:
+        print(f"[alert] DB check failed: {e}")
+        return None
+
+    if total_spend > ADS_ALERT_THRESHOLD:
+        return (
+            f"⚠️ *Ads Spend Alert*\n\n"
+            f"Total ads spend has reached *€{total_spend:,.2f}*, "
+            f"which exceeds the threshold of *€{ADS_ALERT_THRESHOLD:,}*.\n\n"
+            f"Amazon Ads + Meta Ads combined."
+        )
+    return None
+
+
 def invoke_model(messages):
     # Initialize the OpenAI client
     client = OpenAI()
